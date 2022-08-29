@@ -1,44 +1,10 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Empty, Input, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { IData } from '../types/data';
 import { useTypedSelector } from '../hooks/useTypedSelector';
 import { useActions } from '../hooks/useActions';
-import { SearchOutlined } from '@ant-design/icons';
-
-const columns: ColumnsType<IData> = [
-    {
-        title: 'Код',
-        dataIndex: 'code',
-        width: 150,
-
-        // sorter: (a, b) => a.name.length - b.name.length,
-        // sortDirections: ['descend'],
-    },
-    {
-        title: 'Исследование',
-        dataIndex: 'name',
-        width: 700,
-        // sorter: (a, b) => a.name.length - b.name.length,
-        // sortDirections: ['descend'],
-    },
-    {
-        title: 'Биоматериал',
-        dataIndex: 'biomaterialName',
-        // sorter: (a, b) => a.name.length - b.name.length,
-        // sortDirections: ['descend'],
-    },
-    {
-        title: 'Тип усл.',
-        dataIndex: 'researchName',
-    },
-    {
-        title: 'price',
-        dataIndex: 'price',
-        // sorter: (a, b) => a.name.length - b.name.length,
-        // sortDirections: ['descend'],
-    },
-];
+import { DownOutlined, SearchOutlined, UpOutlined } from '@ant-design/icons';
 
 function TableComponent() {
     const { error, loading, dataObjects, count } = useTypedSelector(state => state.data);
@@ -46,10 +12,42 @@ function TableComponent() {
     const [page, setPage] = useState<number>(1);
     const [size, setSize] = useState<number>(10);
     const [search, setSeach] = useState<string>('');
+    const [sortByCode, setSortByCode] = useState<string>('asc');
+    const [sortByResearch, setSortByResearch] = useState<string>('asc');
 
     useEffect(() => {
-        fetchData(page, size, search);
-    }, [page, search]);
+        fetchData(page, size, search, sortByResearch, sortByCode);
+    }, [page, search, sortByResearch, sortByCode]);
+
+    const columns: ColumnsType<IData> = [
+        {
+            title: (
+                <div onClick={() => setSortByCode(sortByCode === 'asc' ? 'desc' : 'asc')}>
+                    Код {sortByCode === 'asc' ? <UpOutlined /> : <DownOutlined />}
+                </div>
+            ),
+            dataIndex: 'code',
+            width: 150,
+            render: code => <strong>{code}</strong>,
+        },
+        {
+            title: (
+                <div onClick={() => setSortByResearch(sortByResearch === 'asc' ? 'desc' : 'asc')}>
+                    Исследование {sortByResearch === 'asc' ? <UpOutlined /> : <DownOutlined />}
+                </div>
+            ),
+            dataIndex: 'name',
+            width: 700,
+        },
+        {
+            title: 'Биоматериал',
+            dataIndex: 'biomaterialName',
+        },
+        {
+            title: 'Тип усл.',
+            dataIndex: 'researchName',
+        },
+    ];
 
     if (error) return <Empty />;
 
@@ -69,9 +67,9 @@ function TableComponent() {
                 style={{ padding: '15px' }}
                 columns={columns}
                 dataSource={dataObjects}
-                rowKey={record => record.name}
+                rowKey={record => record.code}
                 loading={loading}
-                bordered
+                bordered={true}
                 pagination={{
                     pageSize: size,
                     position: ['bottomCenter'],
@@ -79,21 +77,6 @@ function TableComponent() {
                     defaultPageSize: size,
                     showSizeChanger: false,
                     onChange: e => setPage(e),
-                }}
-                // onHeaderRow={(columns, index) => {
-                //     return {
-                //         onClick: () => {
-                //             console.log(index, columns);
-                //         }, // click header row
-                //     };
-                // }}
-
-                onHeaderCell={(columns, index) => {
-                    return {
-                        onClick: () => {
-                            console.log(columns, index);
-                        },
-                    };
                 }}
             />
         </>
